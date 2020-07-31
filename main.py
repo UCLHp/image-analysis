@@ -38,6 +38,9 @@ print('\nImporting libraries...')
 import time
 start = time.time()
 
+# Import some basic tools from easygui to allow for user interface
+from easygui import fileopenbox
+
 # Import pandas, which is used for datamanagement and the creation of
 # dataframes.
 import pandas as pd
@@ -54,7 +57,7 @@ from bokeh.models.widgets import Tabs
 # Import the tab scripts. Each script creates exactly one tab. (As mentioned
 # earlier if there are problems importing these scripts then make sure that
 # there is an empty file called __init__.py in the scripts folder).
-from scripts.filename import Function_Name
+from scripts.image_analysis import ColorMapper
 
 # Import pypyodbc as this is how conections to the database can be achieved.
 import pypyodbc
@@ -88,16 +91,6 @@ print('\nLibraries loaded in: ' + str(endlib - start) + 'sec')
 
 
 
-
-################################################################################
-##################### DEFINE GRAPH COMPILING FUNCTION ##########################
-
-# This function produces the main doccument containing all of the graphs, which
-# is later called by the main function (defined at the bottom of this file).
-
-# It does this by connecting to the database, passing the cursor to the other
-# tab scripts and compiling the tabs into one doccument
-
 ################################################################################
 ################################################################################
 
@@ -110,9 +103,12 @@ def produce_doc(doc):
     # by runnning it 3 times it will be possible to assess 3 different images
     # at the same time.
 
-    tab1 = Function_Name(conn)
-    tab2 = Function_Name(conn)
-    tab3 = Function_Name(conn)
+	# Select the image to be analysed
+    filelocation = fileopenbox(title='Select image', msg='Please select image')
+
+    tab1 = ColorMapper(filelocation)
+    tab2 = ColorMapper(filelocation)
+    tab3 = ColorMapper(filelocation)
     tabs = Tabs(tabs = [tab1, tab2, tab3])
 
     # Put all of the tabs into the doccument
@@ -136,7 +132,7 @@ def produce_doc(doc):
 # bokeh graphs) within the browser.
 
 # This code was originally written by VR (Bill).
-# Commented and altered by CB (Christian)
+# Commented and altered by CB (Christian).
 
 ################################################################################
 ################################################################################
