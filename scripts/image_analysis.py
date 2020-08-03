@@ -21,7 +21,7 @@ from bokeh.models import (CategoricalColorMapper, HoverTool, BoxZoomTool,
 	PanTool, WheelZoomTool, ResetTool, ColumnDataSource, Panel, CrosshairTool,
 	FuncTickFormatter, SingleIntervalTicker, LinearAxis, CustomJS,
 	DatetimeTickFormatter, BasicTickFormatter, NumeralTickFormatter, Arrow,
-	NormalHead, OpenHead, VeeHead, Label, PointDrawTool, Range1d)
+	NormalHead, OpenHead, VeeHead, Label, PointDrawTool, Range1d, FileInput)
 from bokeh.models.widgets import (CheckboxGroup, Slider, RangeSlider,
 	Tabs, CheckboxButtonGroup, Dropdown, TableColumn, DataTable, Select,
 	DateRangeSlider)
@@ -31,6 +31,9 @@ import bokeh.colors
 from bokeh.io import output_file, show
 from bokeh.transform import factor_cmap, factor_mark
 from bokeh.events import Pan, PlotEvent, MouseWheel
+
+import base64
+import io
 
 # PIL for importing TIF file
 from PIL import Image
@@ -276,11 +279,17 @@ def ColorMapper(filelocation):
 
 
 
+	file_input = FileInput(accept='.bmp')
+
+
+
+
+
 	############################################################################
 	############################## SET THE LAYOUT ##############################
 
 	column1 = column(row(p_charmander, p_zoom), p_prof, datatable_prof_points)
-	column2 = column(p_main)
+	column2 = column(p_main, file_input)
 	layout = row(column1, column2)
 
 
@@ -337,6 +346,40 @@ def ColorMapper(filelocation):
 
 	src_prof_points.on_change('data', callback_prof)
 	datatable_prof_points.on_change('source', callback_prof)
+
+
+
+	def callback_file_input (attr, old, new):
+
+		decoded_image = base64.b64decode(file_input.value)
+		arr1 = np.array(Image.open(io.BytesIO(decoded_image)))
+		arr1 = np.flipud(arr1)
+		(dh1, dw1) = arr1.shape
+
+		dict_image = {}
+		dict_image['image'] = [arr1]
+		dict_image['dh1'] = [dh1]
+		dict_image['dw1'] = [dw1]
+
+		src_image.data = dict_image
+
+		dict_prof_points = src_prof_points.data
+
+		x_prof_start, x_prof_end = dict_prof_points['x']
+		y_prof_start, y_prof_end = dict_prof_points['y']
+		x_prof_start = float(x_prof_start)
+		x_prof_end = float(x_prof_end)
+		y_prof_start = float(y_prof_start)
+		y_prof_end = float(y_prof_end)
+
+		df_prof, df_prof_points = create_prof(dict_image, x_prof_start,
+			x_prof_end, y_prof_start, y_prof_end)
+
+		src_prof.data = df_prof.to_dict(orient='list')
+
+		return
+
+	file_input.on_change('value', callback_file_input)
 
 
 
