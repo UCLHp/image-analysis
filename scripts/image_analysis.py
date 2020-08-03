@@ -363,6 +363,20 @@ def ColorMapper(filelocation):
 
 		src_image.data = dict_image
 
+		dict_prof_points = src_prof_points.data
+
+		x_prof_start, x_prof_end = dict_prof_points['x']
+		y_prof_start, y_prof_end = dict_prof_points['y']
+		x_prof_start = float(x_prof_start)
+		x_prof_end = float(x_prof_end)
+		y_prof_start = float(y_prof_start)
+		y_prof_end = float(y_prof_end)
+
+		df_prof, df_prof_points = create_prof(dict_image, x_prof_start,
+			x_prof_end, y_prof_start, y_prof_end)
+
+		src_prof.data = df_prof.to_dict(orient='list')
+
 		return
 
 	file_input.on_change('value', callback_file_input)
